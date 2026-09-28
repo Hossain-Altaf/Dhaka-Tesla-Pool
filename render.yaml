@@ -13,13 +13,13 @@ services:
       - key: SEED_DEMO_DATA
         value: "false"
       - key: DB_HOST
-        sync: false
+        value: mysql-f63ac23-dhaka-tesla.c.aivencloud.com
       - key: DB_PORT
-        value: "3306"
+        value: "13212"
       - key: DB_NAME
-        sync: false
+        value: defaultdb
       - key: DB_USER
-        sync: false
+        value: avnadmin
       - key: DB_PASSWORD
         sync: false
       - key: DB_CONNECTION_LIMIT
