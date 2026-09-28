@@ -24,8 +24,8 @@ Replace the sample `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` and `JWT_SECRET` valu
 docker compose up --build -d
 ```
 
-- Web app: http://localhost:5173
-- API health: http://localhost:4000/health
+- Web app: https://dhaka-tesla-pool-five.vercel.app/
+- API health: https://dhaka-tesla-pool-t5xd.onrender.com/health
 - Logs: `docker compose logs -f api`
 - Stop: `docker compose down`
 - Stop and delete the local database: `docker compose down -v`
