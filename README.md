@@ -26,6 +26,7 @@ docker compose up --build -d
 
 - Web app: https://dhaka-tesla-pool-five.vercel.app/
 - API health: https://dhaka-tesla-pool-t5xd.onrender.com/health
+- Demo Video: https://drive.google.com/file/d/1ZRw-clJGBJBs8mpmMjjWBf88l8HbyxcT/view?usp=sharing
 - Logs: `docker compose logs -f api`
 - Stop: `docker compose down`
 - Stop and delete the local database: `docker compose down -v`
