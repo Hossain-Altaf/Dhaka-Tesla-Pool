@@ -31,6 +31,25 @@ docker compose up --build -d
 - Stop: `docker compose down`
 - Stop and delete the local database: `docker compose down -v`
 
+## 📸 Visuals(interfaces and overview) of Site
+
+### Dashboard
+![driverDashboard](ss/driverDash.png)
+![passebgerDashboard](ss/passengerDash.png)
+
+### Login
+![login](ss/login.png)
+
+### SignUp
+![signUpPassengers](ss/signUpPassengers.png)
+![signUpDriver](ss/signUpDriver.png)
+
+### Ride/trip
+![rideReq](ss/rideReq.png)
+![trip](ss/trip.png)
+![tripUp](ss/tripUpdate.png)
+
+
 Change `WEB_PORT` or `API_HOST_PORT` in `.env` if those host ports are in use. MySQL is only exposed on the Compose network. On first start the API applies the schema and idempotently seeds the demo accounts.
 
 ## Demo accounts
