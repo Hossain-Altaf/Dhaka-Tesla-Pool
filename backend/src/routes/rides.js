@@ -5,7 +5,8 @@ import { pool } from '../db.js'
 import { HttpError } from '../httpError.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import { AREAS, calculateFarePaisa, distanceBetween } from '../domain/fare.js'
-import { acceptRide, openPool, transitionRide } from '../services/poolService.js'
+//import { acceptRide, openPool, transitionRide } from '../services/poolService.js'
+import { acceptRide, openPool, transitionPool, transitionRide } from '../services/poolService.js'
 
 export const ridesRouter = Router()
 ridesRouter.use(requireAuth)
@@ -59,6 +60,18 @@ ridesRouter.post('/pool', requireRole('driver'), async (req, res) => {
   res.status(201).json(await openPool(req.user.sub, parsed.data.pickupZone))
 })
 
+//rider----
+ridesRouter.post('/pool/arrive', requireRole('driver'), async (req, res) => {
+  res.json(await transitionPool({ driverId: req.user.sub, toStatus: 'DRIVER_ARRIVED' }))
+})
+
+ridesRouter.post('/pool/start', requireRole('driver'), async (req, res) => {
+  res.json(await transitionPool({ driverId: req.user.sub, toStatus: 'STARTED' }))
+})
+
+//----
+
+
 ridesRouter.post('/:rideId/accept', requireRole('driver'), async (req, res) => {
   res.json(await acceptRide(req.user.sub, req.params.rideId))
 })
@@ -85,6 +98,9 @@ ridesRouter.get('/:rideId', async (req, res) => {
       r.destination_zone AS destinationZone, r.seat_count AS seatCount,
       r.distance_km AS distanceKm, r.estimated_fare_paisa AS estimatedFarePaisa,
       r.fare_paisa AS farePaisa, r.status, r.created_at AS createdAt,
+
+      (SELECT MAX(e.created_at) FROM ride_events e WHERE e.ride_request_id = r.id AND e.to_status = 'STARTED') AS startedAt,
+
       u.display_name AS passengerName, m.pool_id AS poolId, v.driver_id AS driverId
      FROM ride_requests r JOIN users u ON u.id = r.passenger_id
      LEFT JOIN pool_memberships m ON m.ride_request_id = r.id

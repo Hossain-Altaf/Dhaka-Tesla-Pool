@@ -10,7 +10,7 @@ dashboardRouter.get('/', requireAuth, async (req, res) => {
       `SELECT r.id, r.pickup_zone AS pickupZone, r.destination_zone AS destinationZone,
         r.seat_count AS seatCount, r.distance_km AS distanceKm,
         r.estimated_fare_paisa AS estimatedFarePaisa, r.fare_paisa AS farePaisa,
-        r.status, r.created_at AS createdAt, p.status AS poolStatus,
+        r.status, r.created_at AS createdAt, (SELECT MAX(e.created_at) FROM ride_events e WHERE e.ride_request_id = r.id AND e.to_status = 'STARTED') AS startedAt, p.status AS poolStatus, 
         v.label AS vehicleLabel, d.display_name AS driverName
        FROM ride_requests r
        LEFT JOIN pool_memberships m ON m.ride_request_id = r.id
@@ -44,7 +44,7 @@ dashboardRouter.get('/', requireAuth, async (req, res) => {
         r.pickup_zone AS pickupZone, r.destination_zone AS destinationZone,
         r.seat_count AS seatCount, r.distance_km AS distanceKm,
         r.estimated_fare_paisa AS estimatedFarePaisa, r.fare_paisa AS farePaisa,
-        r.status, r.created_at AS createdAt, m.pool_id AS poolId
+        r.status, r.created_at AS createdAt, (SELECT MAX(e.created_at) FROM ride_events e WHERE e.ride_request_id = r.id AND e.to_status = 'STARTED') AS startedAt, m.pool_id AS poolId
        FROM ride_requests r
        LEFT JOIN pool_memberships m ON m.ride_request_id = r.id
        LEFT JOIN users u ON u.id = r.passenger_id

@@ -150,3 +150,57 @@ export async function transitionRide({ rideId, actorId, actorRole, toStatus }) {
     connection.release()
   }
 }
+
+//rider-----acc
+
+const POOL_STEP_NOTES = {
+  DRIVER_ARRIVED: 'Driver arrived at the pickup point.',
+  STARTED: 'Trip started for the whole pool.',
+}
+
+export async function transitionPool({ driverId, toStatus }) {
+  if (!POOL_STEP_NOTES[toStatus]) throw new HttpError(400, 'Unsupported pool action.')
+  const connection = await pool.getConnection()
+  try {
+    await connection.beginTransaction()
+    const [vehicles] = await connection.execute(
+      'SELECT id FROM vehicles WHERE driver_id = ? AND is_active = TRUE FOR UPDATE',
+      [driverId],
+    )
+    if (!vehicles[0]) throw new HttpError(404, 'No active Tesla is assigned to this driver.')
+
+    const [pools] = await connection.execute(
+      "SELECT id FROM pools WHERE vehicle_id = ? AND status IN ('OPEN', 'IN_PROGRESS') ORDER BY created_at DESC LIMIT 1 FOR UPDATE",
+      [vehicles[0].id],
+    )
+    if (!pools[0]) throw new HttpError(409, 'Open a pool before moving the trip forward.')
+
+    const [rides] = await connection.execute(
+      `SELECT r.id, r.status FROM pool_memberships m JOIN ride_requests r ON r.id = m.ride_request_id
+       WHERE m.pool_id = ? AND r.status IN (${OCCUPYING_STATUSES.map(() => '?').join(', ')}) FOR UPDATE`,
+      [pools[0].id, ...OCCUPYING_STATUSES],
+    )
+    const eligible = rides.filter((ride) => canTransition(ride.status, toStatus, DRIVER_TRANSITIONS))
+    if (toStatus === 'STARTED' && rides.some((ride) => ride.status === 'MATCHED')) {
+      throw new HttpError(409, 'Mark every rider as arrived before starting the trip.')
+    }
+    if (eligible.length === 0) {
+      throw new HttpError(409, toStatus === 'STARTED' ? 'No riders are ready to start.' : 'No assigned riders are waiting for pickup.')
+    }
+
+    for (const ride of eligible) {
+      await connection.execute('UPDATE ride_requests SET status = ? WHERE id = ?', [toStatus, ride.id])
+      await addEvent(connection, ride.id, driverId, ride.status, toStatus, POOL_STEP_NOTES[toStatus])
+    }
+    if (toStatus === 'STARTED') {
+      await connection.execute("UPDATE pools SET status = 'IN_PROGRESS' WHERE id = ? AND status = 'OPEN'", [pools[0].id])
+    }
+    await connection.commit()
+    return { poolId: pools[0].id, status: toStatus, riders: eligible.length }
+  } catch (error) {
+    await connection.rollback()
+    throw error
+  } finally {
+    connection.release()
+  }
+}
