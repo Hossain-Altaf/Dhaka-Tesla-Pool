@@ -41,7 +41,7 @@ docker compose up --build -d
 ![login](ss/login.png)
 
 ### SignUp
-![signUpPassengers](ss/signUpPassengers.png)
+![signUpPassengers](ss/signUpPassenger.png)
 ![signUpDriver](ss/signUpDriver.png)
 
 ### Ride/trip
